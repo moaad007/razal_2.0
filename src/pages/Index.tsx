@@ -2,11 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import RoomCard from '@/components/RoomCard';
 import { Button } from '@/components/ui/button';
-import { useOrderStore } from '@/store/useOrderStore';
+import { useOrderStore, useInitializeStore } from '@/store/useOrderStore';
 import { toast } from 'sonner';
 
 const Index = () => {
   const navigate = useNavigate();
+  useInitializeStore(); // Initialize the store with real data
   const { orders } = useOrderStore();
   const rooms = Array.from({ length: 7 }, (_, i) => i + 1);
 
