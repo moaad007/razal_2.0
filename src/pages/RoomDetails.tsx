@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,8 +18,8 @@ import ProductCard from '@/components/ProductCard';
 const RoomDetails = () => {
   const { roomNumber } = useParams();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   const { orders, products, removeItemFromRoom, clearRoom, addItemToRoom } = useOrderStore();
   const room = orders[Number(roomNumber)];
