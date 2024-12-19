@@ -72,12 +72,20 @@ export const useOrders = () => {
 
       if (addItemError) throw addItemError;
 
-      // Update the order total
+      // Update the order total using a separate query
+      const { data: totalData, error: totalError } = await supabase
+        .from('order_items')
+        .select('price_at_time, quantity')
+        .eq('order_id', existingOrder.id);
+
+      if (totalError) throw totalError;
+
+      const newTotal = totalData.reduce((sum: number, item: any) => 
+        sum + (item.price_at_time * item.quantity), 0);
+
       const { error: updateOrderError } = await supabase
         .from("orders")
-        .update({ 
-          total_amount: supabase.rpc('calculate_order_total', { order_id: existingOrder.id })
-        })
+        .update({ total_amount: newTotal })
         .eq('id', existingOrder.id);
 
       if (updateOrderError) throw updateOrderError;
@@ -106,12 +114,20 @@ export const useOrders = () => {
 
       if (deleteError) throw deleteError;
 
-      // Update the order total
+      // Update the order total using a separate query
+      const { data: totalData, error: totalError } = await supabase
+        .from('order_items')
+        .select('price_at_time, quantity')
+        .eq('order_id', order.id);
+
+      if (totalError) throw totalError;
+
+      const newTotal = totalData.reduce((sum: number, item: any) => 
+        sum + (item.price_at_time * item.quantity), 0);
+
       const { error: updateOrderError } = await supabase
         .from("orders")
-        .update({ 
-          total_amount: supabase.rpc('calculate_order_total', { order_id: order.id })
-        })
+        .update({ total_amount: newTotal })
         .eq('id', order.id);
 
       if (updateOrderError) throw updateOrderError;
