@@ -22,11 +22,11 @@ export const useOrders = () => {
       if (ordersError) throw ordersError;
 
       // Transform the data to match the existing structure
-      const transformedOrders = orders.reduce((acc, order) => {
+      const transformedOrders = orders.reduce((acc: Record<number, any>, order) => {
         acc[order.room_number] = {
           roomNumber: order.room_number,
           totalAmount: order.total_amount,
-          items: order.order_items.map(item => ({
+          items: order.order_items.map((item: any) => ({
             productId: item.product_id,
             quantity: item.quantity,
             product: item.product
@@ -47,12 +47,12 @@ export const useOrders = () => {
         .select("id")
         .eq("room_number", roomNumber)
         .eq("status", "active")
-        .single();
+        .maybeSingle();
 
       if (!existingOrder) {
         const { data: newOrder, error: createOrderError } = await supabase
           .from("orders")
-          .insert({ room_number: roomNumber })
+          .insert({ room_number: roomNumber, total_amount: 0 })
           .select()
           .single();
         
@@ -74,7 +74,11 @@ export const useOrders = () => {
 
       // Update the order total
       const { error: updateOrderError } = await supabase
-        .rpc('update_order_total', { order_id: existingOrder.id });
+        .from("orders")
+        .update({ 
+          total_amount: supabase.rpc('calculate_order_total', { order_id: existingOrder.id })
+        })
+        .eq('id', existingOrder.id);
 
       if (updateOrderError) throw updateOrderError;
     },
@@ -90,7 +94,7 @@ export const useOrders = () => {
         .select("id")
         .eq("room_number", roomNumber)
         .eq("status", "active")
-        .single();
+        .maybeSingle();
 
       if (!order) return;
 
@@ -104,7 +108,11 @@ export const useOrders = () => {
 
       // Update the order total
       const { error: updateOrderError } = await supabase
-        .rpc('update_order_total', { order_id: order.id });
+        .from("orders")
+        .update({ 
+          total_amount: supabase.rpc('calculate_order_total', { order_id: order.id })
+        })
+        .eq('id', order.id);
 
       if (updateOrderError) throw updateOrderError;
     },
