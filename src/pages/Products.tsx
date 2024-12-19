@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { SearchIcon, PlusIcon, Trash2Icon } from 'lucide-react';
+import { SearchIcon, PlusIcon, Trash2Icon, ArrowLeft } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import { Product } from '@/types';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import {
 import { useOrderStore } from '@/store/useOrderStore';
 
 const Products = () => {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [newProduct, setNewProduct] = useState({
@@ -59,7 +61,13 @@ const Products = () => {
     <div className="min-h-screen bg-hotel-background p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-hotel-primary">Products Management</h1>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={() => navigate('/')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Rooms
+            </Button>
+            <h1 className="text-3xl font-bold text-hotel-primary">Products Management</h1>
+          </div>
           <Dialog>
             <DialogTrigger asChild>
               <Button>
