@@ -2,16 +2,34 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Printer, Trash2 } from 'lucide-react';
+import { ArrowLeft, Printer, Trash2, Plus } from 'lucide-react';
 import { useOrderStore } from '@/store/useOrderStore';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import ProductCard from '@/components/ProductCard';
 
 const RoomDetails = () => {
   const { roomNumber } = useParams();
   const navigate = useNavigate();
-  const room = useOrderStore((state) => state.orders[Number(roomNumber)]);
-  const removeItem = useOrderStore((state) => state.removeItemFromRoom);
-  const clearRoom = useOrderStore((state) => state.clearRoom);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+  
+  const { orders, products, removeItemFromRoom, clearRoom, addItemToRoom } = useOrderStore();
+  const room = orders[Number(roomNumber)];
+
+  const categories = Array.from(new Set(products.map(p => p.category)));
+  
+  const filteredProducts = products.filter(product => 
+    (!selectedCategory || product.category === selectedCategory) &&
+    (!searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   if (!room) {
     return (
@@ -27,7 +45,6 @@ const RoomDetails = () => {
 
   const handlePrint = () => {
     toast.success('Bill sent to printer');
-    // Implement actual printing logic here
   };
 
   const handleClearRoom = () => {
@@ -44,6 +61,59 @@ const RoomDetails = () => {
           Back to Rooms
         </Button>
         <div className="space-x-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>Add Product to Room {roomNumber}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      variant={selectedCategory === null ? "default" : "outline"}
+                      onClick={() => setSelectedCategory(null)}
+                    >
+                      All
+                    </Button>
+                    {categories.map((category) => (
+                      <Button
+                        key={category}
+                        variant={selectedCategory === category ? "default" : "outline"}
+                        onClick={() => setSelectedCategory(category)}
+                      >
+                        {category}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto">
+                  {filteredProducts.map((product) => (
+                    <ProductCard
+                      key={product.id}
+                      name={product.name}
+                      price={product.price}
+                      category={product.category}
+                      onAdd={() => {
+                        addItemToRoom(Number(roomNumber), product);
+                        toast.success(`Added ${product.name} to Room ${roomNumber}`);
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2" />
             Print Bill
@@ -82,7 +152,7 @@ const RoomDetails = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => removeItem(Number(roomNumber), item.productId)}
+                    onClick={() => removeItemFromRoom(Number(roomNumber), item.productId)}
                   >
                     Remove
                   </Button>

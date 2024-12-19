@@ -3,13 +3,26 @@ import { Product, RoomOrder, OrderItem } from '@/types';
 
 interface OrderStore {
   orders: Record<number, RoomOrder>;
+  products: Product[];
   addItemToRoom: (roomNumber: number, product: Product) => void;
   removeItemFromRoom: (roomNumber: number, productId: number) => void;
   clearRoom: (roomNumber: number) => void;
+  addProduct: (product: Product) => void;
+  deleteProduct: (productId: number) => void;
 }
+
+// Initial mock products
+const initialProducts: Product[] = [
+  { id: 1, name: "Coffee", price: 3.50, category: "Drinks" },
+  { id: 2, name: "Tea", price: 2.50, category: "Drinks" },
+  { id: 3, name: "Sandwich", price: 8.00, category: "Food" },
+  { id: 4, name: "Salad", price: 10.00, category: "Food" },
+];
 
 export const useOrderStore = create<OrderStore>((set) => ({
   orders: {},
+  products: initialProducts,
+  
   addItemToRoom: (roomNumber, product) =>
     set((state) => {
       const currentOrder = state.orders[roomNumber] || { roomNumber, items: [], totalAmount: 0 };
@@ -70,4 +83,14 @@ export const useOrderStore = create<OrderStore>((set) => ({
       const { [roomNumber]: _, ...restOrders } = state.orders;
       return { orders: restOrders };
     }),
+
+  addProduct: (product) =>
+    set((state) => ({
+      products: [...state.products, product],
+    })),
+
+  deleteProduct: (productId) =>
+    set((state) => ({
+      products: state.products.filter((p) => p.id !== productId),
+    })),
 }));

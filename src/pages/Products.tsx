@@ -1,36 +1,58 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import { Product } from '@/types';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useOrderStore } from '@/store/useOrderStore';
-
-// Mock products data - replace with real data later
-const mockProducts: Product[] = [
-  { id: 1, name: "Coffee", price: 3.50, category: "Drinks" },
-  { id: 2, name: "Tea", price: 2.50, category: "Drinks" },
-  { id: 3, name: "Sandwich", price: 8.00, category: "Food" },
-  { id: 4, name: "Salad", price: 10.00, category: "Food" },
-];
 
 const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const { addItemToRoom } = useOrderStore();
-  
-  const categories = Array.from(new Set(mockProducts.map(p => p.category)));
-  const rooms = Array.from({ length: 7 }, (_, i) => i + 1);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    price: '',
+    category: ''
+  });
 
-  const filteredProducts = mockProducts.filter(product => 
+  const { products, addProduct, deleteProduct } = useOrderStore();
+  
+  const categories = Array.from(new Set(products.map(p => p.category)));
+
+  const filteredProducts = products.filter(product => 
     (!selectedCategory || product.category === selectedCategory) &&
     (!searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const handleAddToRoom = (product: Product, roomNumber: number) => {
-    addItemToRoom(roomNumber, product);
-    toast.success(`Added ${product.name} to Room ${roomNumber}`);
+  const handleAddProduct = () => {
+    if (!newProduct.name || !newProduct.price || !newProduct.category) {
+      toast.error('Please fill all fields');
+      return;
+    }
+
+    const price = parseFloat(newProduct.price);
+    if (isNaN(price)) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+
+    addProduct({
+      id: Date.now(),
+      name: newProduct.name,
+      price: price,
+      category: newProduct.category
+    });
+
+    setNewProduct({ name: '', price: '', category: '' });
+    toast.success('Product added successfully');
   };
 
   return (
@@ -38,6 +60,47 @@ const Products = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-hotel-primary">Products Management</h1>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusIcon className="mr-2 h-4 w-4" />
+                Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Product</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Product Name"
+                    value={newProduct.name}
+                    onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Price"
+                    type="number"
+                    step="0.01"
+                    value={newProduct.price}
+                    onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Category"
+                    value={newProduct.category}
+                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                  />
+                </div>
+                <Button onClick={handleAddProduct} className="w-full">
+                  Add Product
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="space-y-6">
@@ -72,30 +135,14 @@ const Products = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="group relative">
+              <div key={product.id} className="relative">
                 <ProductCard
                   name={product.name}
                   price={product.price}
                   category={product.category}
-                  onAdd={() => {
-                    const roomNumber = 1;
-                    handleAddToRoom(product, roomNumber);
-                  }}
+                  onAdd={() => deleteProduct(product.id)}
+                  deleteMode={true}
                 />
-                <div className="absolute top-0 right-0 mt-2 mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex gap-1 bg-white p-1 rounded-md shadow-lg">
-                    {rooms.map((roomNumber) => (
-                      <Button
-                        key={roomNumber}
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleAddToRoom(product, roomNumber)}
-                      >
-                        {roomNumber}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
               </div>
             ))}
           </div>
