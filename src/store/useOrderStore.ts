@@ -9,11 +9,10 @@ interface OrderStore {
   addItemToRoom: (roomNumber: number, product: Product) => void;
   removeItemFromRoom: (roomNumber: number, productId: number) => void;
   clearRoom: (roomNumber: number) => void;
-  addProduct: (product: Product) => void;
+  addProduct: (product: Omit<Product, "id">) => void;
   deleteProduct: (productId: number) => void;
 }
 
-// This is now just a wrapper around our React Query hooks
 export const useOrderStore = create<OrderStore>(() => ({
   products: [],
   orders: {},
@@ -24,9 +23,8 @@ export const useOrderStore = create<OrderStore>(() => ({
   deleteProduct: () => {},
 }));
 
-// Initialize the store with the hooks
 export const useInitializeStore = () => {
-  const { data: products } = useProducts();
+  const { data: products, addProduct, deleteProduct } = useProducts();
   const { 
     orders, 
     addItemToRoom: addItem, 
@@ -42,5 +40,7 @@ export const useInitializeStore = () => {
     removeItemFromRoom: (roomNumber: number, productId: number) => 
       removeItem({ roomNumber, productId }),
     clearRoom: (roomNumber: number) => clear(roomNumber),
+    addProduct,
+    deleteProduct,
   });
 };

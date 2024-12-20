@@ -19,7 +19,7 @@ export const useProducts = () => {
   });
 
   const addProductMutation = useMutation({
-    mutationFn: async (product: Product) => {
+    mutationFn: async (product: Omit<Product, "id">) => {
       const { error } = await supabase
         .from("products")
         .insert(product);
@@ -46,7 +46,7 @@ export const useProducts = () => {
   });
 
   return {
-    data: productsQuery.data,
+    data: productsQuery.data || [],
     isLoading: productsQuery.isLoading,
     error: productsQuery.error,
     addProduct: addProductMutation.mutate,
