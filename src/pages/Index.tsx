@@ -4,12 +4,48 @@ import RoomCard from '@/components/RoomCard';
 import { Button } from '@/components/ui/button';
 import { useOrderStore, useInitializeStore } from '@/store/useOrderStore';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const navigate = useNavigate();
-  useInitializeStore(); // Initialize the store with real data
-  const { orders } = useOrderStore();
+  const { orders, setOrders } = useOrderStore();
+  
+  // Fetch orders from Supabase
+  const { isLoading, error } = useQuery({
+    queryKey: ['orders'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*');
+      
+      if (error) {
+        console.error('Error fetching orders:', error);
+        throw error;
+      }
+      
+      setOrders(data || []);
+      return data;
+    }
+  });
+
   const rooms = Array.from({ length: 7 }, (_, i) => i + 1);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-hotel-background p-6 flex items-center justify-center">
+        <div className="text-xl text-hotel-primary">Loading orders...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-hotel-background p-6 flex items-center justify-center">
+        <div className="text-xl text-red-500">Error loading orders. Please try again.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-hotel-background p-6">
@@ -30,7 +66,6 @@ const Index = () => {
               onViewDetails={() => navigate(`/room/${roomNumber}`)}
               onPrintBill={() => {
                 toast.success(`Printing bill for Room ${roomNumber}`);
-                // Implement actual printing logic here
               }}
             />
           ))}
