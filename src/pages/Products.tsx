@@ -40,11 +40,23 @@ const Products = () => {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading products...</div>;
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center min-h-[200px]">
+          <p className="text-lg text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="p-6">Error loading products: {error.message}</div>;
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600">Error loading products: {error.message}</p>
+        </div>
+      </div>
+    );
   }
 
   return (

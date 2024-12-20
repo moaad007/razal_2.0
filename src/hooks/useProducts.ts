@@ -13,7 +13,10 @@ export const useProducts = () => {
         .select("*")
         .order("name");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching products:", error);
+        throw error;
+      }
       return data;
     },
   });
@@ -24,9 +27,12 @@ export const useProducts = () => {
         .from("products")
         .insert(product)
         .select()
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding product:", error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -41,7 +47,10 @@ export const useProducts = () => {
         .delete()
         .eq("id", productId);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting product:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
