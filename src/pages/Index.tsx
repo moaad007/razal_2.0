@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 const Index = () => {
   const navigate = useNavigate();
   const { orders, setOrders } = useOrderStore();
+  useInitializeStore(); // Initialize store with products and orders
   
   // Fetch orders from Supabase
   const { isLoading, error } = useQuery({
@@ -17,7 +18,14 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*');
+        .select(`
+          *,
+          order_items (
+            *,
+            product:products (*)
+          )
+        `)
+        .eq('status', 'active');
       
       if (error) {
         console.error('Error fetching orders:', error);
