@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { SearchIcon, PlusIcon, Trash2Icon, ArrowLeft } from 'lucide-react';
+import { SearchIcon, PlusIcon, ArrowLeft } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import { Product } from '@/types';
 import { toast } from 'sonner';
@@ -47,7 +47,6 @@ const Products = () => {
     }
 
     addProduct({
-      id: Date.now(),
       name: newProduct.name,
       price: price,
       category: newProduct.category
