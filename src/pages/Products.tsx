@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft } from 'lucide-react';
-import { useOrderStore } from '@/store/useOrderStore';
 import { toast } from 'sonner';
 import ProductCard from '@/components/ProductCard';
+import { useProducts } from '@/hooks/useProducts';
 
 const Products = () => {
   const navigate = useNavigate();
-  const { products, addProduct, deleteProduct } = useOrderStore();
+  const { data: products, isLoading, error, addProduct, deleteProduct } = useProducts();
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
@@ -38,6 +38,14 @@ const Products = () => {
       toast.error('Failed to add product');
     }
   };
+
+  if (isLoading) {
+    return <div className="p-6">Loading products...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6">Error loading products: {error.message}</div>;
+  }
 
   return (
     <div className="p-6">
@@ -74,18 +82,27 @@ const Products = () => {
 
         <div>
           <h2 className="text-2xl font-bold text-hotel-primary mb-4">Product List</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                name={product.name}
-                price={product.price}
-                category={product.category}
-                onAdd={() => deleteProduct(product.id)}
-                deleteMode={true}
-              />
-            ))}
-          </div>
+          {products && products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  name={product.name}
+                  price={product.price}
+                  category={product.category}
+                  onAdd={() => {
+                    deleteProduct(product.id);
+                    toast.success(`Deleted ${product.name}`);
+                  }}
+                  deleteMode={true}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              No products available. Add your first product above!
+            </div>
+          )}
         </div>
       </div>
     </div>

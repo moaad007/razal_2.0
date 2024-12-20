@@ -20,11 +20,14 @@ export const useProducts = () => {
 
   const addProductMutation = useMutation({
     mutationFn: async (product: Omit<Product, "id">) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("products")
-        .insert(product);
+        .insert(product)
+        .select()
+        .single();
       
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
